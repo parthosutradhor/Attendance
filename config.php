@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 // Google OAuth Client ID (Web)
-const GOOGLE_CLIENT_ID = "152898827405-69p9ko2s2bro9j8era9uvvgdib662h0t.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "152898827405-5o9mng0eumjler1dr715onuq99ms9sl2.apps.googleusercontent.com";
 
 // Google Sheet settings
 const SPREADSHEET_ID = "1UCUvcLmxjSmX9mXWYijhlsL5GTh4lfMasXtGvyjwEkY";
