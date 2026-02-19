@@ -2,21 +2,14 @@
 declare(strict_types=1);
 
 // Google OAuth Client ID (Web)
-const GOOGLE_CLIENT_ID = "";
+const GOOGLE_CLIENT_ID = "152898827405-5o9mng0eumjler1dr715onuq99ms9sl2.apps.googleusercontent.com";
 
 // Google Sheet settings
-const SPREADSHEET_ID = "";
+const SPREADSHEET_ID = "1UCUvcLmxjSmX9mXWYijhlsL5GTh4lfMasXtGvyjwEkY";
 const SHEET_TAB_NAME = "Attendance";
 
 // Service account JSON
 const SERVICE_ACCOUNT_JSON_PATH = __DIR__ . "/service-account.json";
-
-// ===============================
-// Admin / Settings
-// ===============================
-
-// Change this to a strong password before deploying.
-const ADMIN_PASSWORD = "123456";
 
 // Settings JSON (created/edited via admin.php)
 const SETTINGS_FILE = __DIR__ . "/settings.json";

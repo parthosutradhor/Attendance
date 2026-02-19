@@ -8,11 +8,10 @@
     ],
     "email_mode": "domains",
     "domain_allowlist": [
-        "g.bracu.ac.bd",
-        "bracu.ac.bd"
+        "bracu.ac.bd",
+        "g.bracu.ac.bd"
     ],
     "course_codes": [
-        "MAT105",
         "MAT215",
         "MAT321"
     ],
@@ -23,5 +22,6 @@
         "17",
         "18"
     ],
-    "updated_at": "2026-02-19T12:34:29-05:00"
+    "updated_at": "2026-02-19T14:26:53-05:00",
+    "admin_password_sha1": "7c4a8d09ca3762af61e59520943dc26494f8941b"
 }

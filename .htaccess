@@ -1,0 +1,15 @@
+# Disable directory listing
+Options -Indexes
+
+# Block sensitive files
+<FilesMatch "\.(json|lock|log|ini)$">
+  Require all denied
+</FilesMatch>
+
+# Specifically block service account / settings even if extension changes
+<Files "service-account.json">
+  Require all denied
+</Files>
+<Files "settings.json">
+  Require all denied
+</Files>

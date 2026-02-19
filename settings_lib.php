@@ -23,6 +23,8 @@ function settings_default(): array {
         'sections'         => ['14', '15', '16'],
 
         'updated_at'       => date('c'),
+        
+        'admin_password_sha1' => ''
     ];
 }
 
@@ -184,3 +186,31 @@ function form_value_allowed(string $value, array $allowlist): bool {
     }
     return false;
 }
+
+function get_admin_password_sha1(): string {
+    $s = load_settings();
+    $h = (string)($s['admin_password_sha1'] ?? '');
+    return strtolower(trim($h));
+}
+
+function set_admin_password_sha1(string $sha1): bool {
+    $s = load_settings();
+    $s['admin_password_sha1'] = strtolower(trim($sha1));
+    return save_settings($s);
+}
+
+/**
+ * Save settings to SETTINGS_FILE (pretty JSON).
+ */
+function settings_save(array $s): bool {
+    $s['updated_at'] = date('c');
+
+    $path = defined('SETTINGS_FILE') ? SETTINGS_FILE : (__DIR__ . '/settings.json');
+    if (!is_string($path) || $path === '') return false;
+
+    $json = json_encode($s, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    if ($json === false) return false;
+
+    return file_put_contents($path, $json) !== false;
+}
+

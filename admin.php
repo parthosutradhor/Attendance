@@ -57,13 +57,21 @@ if (isset($_GET['logout'])) {
 if (($_POST['action'] ?? '') === 'login') {
     require_csrf();
     $pw = (string)($_POST['password'] ?? '');
-    if (defined('ADMIN_PASSWORD') && hash_equals((string)ADMIN_PASSWORD, $pw)) {
+
+    $auth_settings = settings_load();
+    $stored = strtolower(trim((string)($auth_settings['admin_password_sha1'] ?? '')));
+
+    if ($stored === '') {
+        $flash = 'Admin password is not configured. Set admin_password_sha1 in settings.json.';
+    } elseif (hash_equals($stored, sha1($pw))) {
         $_SESSION['admin_authed'] = true;
         header('Location: admin.php');
         exit;
+    } else {
+        $flash = 'Wrong password.';
     }
-    $flash = 'Wrong password.';
 }
+
 
 $authed = !empty($_SESSION['admin_authed']);
 
@@ -439,7 +447,9 @@ code{
 
   <div class="muted">
     <?php if ($authed): ?>
-      Last update: <?=h((string)($settings['updated_at'] ?? '—'))?> • <a href="?logout=1">Logout</a>
+      Last update: <?=h((string)($settings['updated_at'] ?? '—'))?>
+      • <a href="change_password.php">Change password</a>
+      • <a href="?logout=1">Logout</a>
     <?php endif; ?>
   </div>
 </header>
