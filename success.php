@@ -2,12 +2,15 @@
 declare(strict_types=1);
 session_start();
 
-$name    = $_GET["name"] ?? "";
-$id      = $_GET["id"] ?? "";
-$course  = $_GET["course"] ?? "";
-$section = $_GET["section"] ?? "";
-$email   = $_GET["email"] ?? "";
-$ts      = $_GET["ts"] ?? "";
+$last = $_SESSION['last_submission'] ?? [];
+if (!is_array($last)) $last = [];
+
+$name    = $last['name'] ?? '';
+$id      = $last['id'] ?? '';
+$course  = $last['course'] ?? '';
+$section = $last['section'] ?? '';
+$email   = $last['email'] ?? '';
+$ts      = $last['ts'] ?? '';
 ?>
 <!doctype html>
 <html lang="en">

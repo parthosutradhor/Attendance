@@ -1,0 +1,27 @@
+{
+    "allow_all_ip": false,
+    "asn_allowlist": [
+        "AS151981"
+    ],
+    "ip_whitelist": [
+        "202.83.126.240"
+    ],
+    "email_mode": "domains",
+    "domain_allowlist": [
+        "g.bracu.ac.bd",
+        "bracu.ac.bd"
+    ],
+    "course_codes": [
+        "MAT105",
+        "MAT215",
+        "MAT321"
+    ],
+    "sections": [
+        "01",
+        "11",
+        "12",
+        "17",
+        "18"
+    ],
+    "updated_at": "2026-02-19T12:34:29-05:00"
+}

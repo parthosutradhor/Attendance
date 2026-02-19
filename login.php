@@ -2,7 +2,10 @@
 declare(strict_types=1);
 session_start();
 require_once __DIR__ . "/config.php";
+require_once __DIR__ . "/settings_lib.php";
 header("Content-Type: application/json");
+
+$settings = settings_load();
 
 $data = json_decode(file_get_contents("php://input"), true);
 $token = $data["credential"] ?? "";
@@ -41,11 +44,14 @@ if (!$email) {
   exit;
 }
 
-// Restrict domain: bracu.ac.bd or g.bracu.ac.bd
-$domain = substr(strrchr($email, "@") ?: "", 1);
-if (!$domain || !in_array($domain, ALLOWED_EMAIL_DOMAINS, true)) {
+// Enforce email policy from settings.json
+if (!email_is_allowed($email, $settings)) {
   http_response_code(403);
-  echo json_encode(["error" => "Only @g.bracu.ac.bd allowed"]);
+  $mode = ($settings['email_mode'] ?? 'domains') === 'all_gmail' ? 'all_gmail' : 'domains';
+  $msg = ($mode === 'all_gmail')
+    ? 'Only @gmail.com accounts are allowed right now.'
+    : 'Your email domain is not allowed.';
+  echo json_encode(["error" => $msg]);
   exit;
 }
 

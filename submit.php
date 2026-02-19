@@ -3,7 +3,10 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . "/config.php";
+require_once __DIR__ . "/settings_lib.php";
 require_once __DIR__ . "/sheets.php";
+
+$settings = settings_load();
 
 if (!isset($_SESSION["user"])) {
   header("Location: index.php?status=error&msg=" . urlencode("Not logged in."));
@@ -22,7 +25,19 @@ if (!$email) {
   exit;
 }
 
-$ip = $_SERVER["REMOTE_ADDR"] ?? "unknown";
+$ip = get_real_ip();
+
+// Enforce network policy server-side (no bypass by direct POST)
+if (!network_is_allowed($ip, $settings)) {
+  header("Location: index.php?status=error&msg=" . urlencode("Access denied: network not allowed."));
+  exit;
+}
+
+// Enforce email policy server-side
+if (!email_is_allowed($email, $settings)) {
+  header("Location: index.php?status=error&msg=" . urlencode("Access denied: email not allowed."));
+  exit;
+}
 
 // Student inputs
 $course     = trim($_POST["course_code"] ?? "");
@@ -40,6 +55,21 @@ if (!preg_match('/^[0-9]{8,}$/', $student_id)) {
   exit;
 }
 
+// Enforce course/section allowlists (if admin configured them)
+$allowed_courses = $settings['course_codes'] ?? [];
+$allowed_sections = $settings['sections'] ?? [];
+if (!is_array($allowed_courses)) $allowed_courses = [];
+if (!is_array($allowed_sections)) $allowed_sections = [];
+
+if (!form_value_allowed($course, $allowed_courses)) {
+  header("Location: index.php?status=error&msg=" . urlencode("Invalid course code."));
+  exit;
+}
+if (!form_value_allowed($section, $allowed_sections)) {
+  header("Location: index.php?status=error&msg=" . urlencode("Invalid section."));
+  exit;
+}
+
 // Timestamp (Dhaka)
 $dt = new DateTime("now", new DateTimeZone("Asia/Dhaka"));
 $timestamp = $dt->format("Y-m-d H:i:s");
@@ -51,17 +81,17 @@ $row = [$course, $section, $name, $student_id, $email, $timestamp, $ip];
 try {
   append_row($row, $email, $today);
 
-  // Redirect to success page with summary data
-  $query = http_build_query([
-    "name" => $name,
-    "id" => $student_id,
-    "course" => $course,
-    "section" => $section,
-    "email" => $email,
-    "ts" => $timestamp
-  ]);
+  // Store summary in session (avoid leaking data in URL)
+  $_SESSION['last_submission'] = [
+    'name' => $name,
+    'id' => $student_id,
+    'course' => $course,
+    'section' => $section,
+    'email' => $email,
+    'ts' => $timestamp,
+  ];
 
-  header("Location: success.php?$query");
+  header("Location: success.php");
   exit;
 
 } catch (Throwable $e) {

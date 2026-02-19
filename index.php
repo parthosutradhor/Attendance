@@ -1,49 +1,11 @@
 <?php
 declare(strict_types=1);
 
-/* ===============================
-   BRAC WiFi ASN Restriction
-   =============================== */
+require_once __DIR__ . '/settings_lib.php';
 
-/* ---------- Get Real Client IP ---------- */
-function getRealIP(): string {
-    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) return $_SERVER['HTTP_CF_CONNECTING_IP'];
-    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) return trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
-    return $_SERVER['REMOTE_ADDR'] ?? '';
-}
-
-/* ---------- Check ASN via ipinfo ---------- */
-function is_ip_from_allowed_asn(string $ip, array $allowed_asns): bool {
-    if ($ip === '') return false;
-
-    $url = "https://ipinfo.io/{$ip}/json";
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 5,
-        CURLOPT_CONNECTTIMEOUT => 3,
-        CURLOPT_USERAGENT => 'BRACU-Attendance/1.0',
-    ]);
-    $response = curl_exec($ch);
-    curl_close($ch);
-
-    if (!$response) return false;
-
-    $data = json_decode($response, true);
-    if (!is_array($data)) return false;
-
-    $org = (string)($data['org'] ?? ''); // e.g. "AS151981 ..."
-    if ($org === '') return false;
-
-    foreach ($allowed_asns as $asn) {
-        if ($asn !== '' && stripos($org, $asn) !== false) return true;
-    }
-    return false;
-}
-
-/* ---------- Allowed ASN List ---------- */
-$allowed_asns = ["AS151981"]; // BRAC University
-$user_ip = getRealIP();
+// Load admin-controlled settings
+$settings = settings_load();
+$user_ip  = get_real_ip();
 
 /* ===============================
    Production UI (White + Bootstrap-ish Blue)
@@ -335,8 +297,8 @@ input[readonly]{
 }
 CSS;
 
-/* ---------- Block if not BRAC ASN ---------- */
-if (!is_ip_from_allowed_asn($user_ip, $allowed_asns)) {
+/* ---------- Block if not allowed by settings.json (whitelist / allow-all / ASN allowlist) ---------- */
+if (!network_is_allowed($user_ip, $settings)) {
     $safe_ip = htmlspecialchars($user_ip, ENT_QUOTES, 'UTF-8');
 ?>
 <!doctype html>
@@ -361,7 +323,7 @@ if (!is_ip_from_allowed_asn($user_ip, $allowed_asns)) {
 
       <div class="content">
         <div class="notice error">
-          You must be connected to BRAC University WiFi to use this portal.
+          You are not allowed to access this portal from your current network.
           <div class="sub">Your IP: <strong><?= $safe_ip ?></strong></div>
         </div>
 
@@ -369,6 +331,7 @@ if (!is_ip_from_allowed_asn($user_ip, $allowed_asns)) {
           <div style="font-weight:950; margin-bottom:6px;">What to do</div>
           <div style="color:var(--muted); font-weight:650; font-size:13px; line-height:1.6;">
             Connect to BRACU WiFi and refresh this page. If you are using a VPN/proxy, disable it and try again.
+            If you believe this is a mistake, contact the course instructor/admin.
           </div>
         </div>
       </div>
@@ -392,6 +355,12 @@ session_start();
 require_once __DIR__ . "/config.php";
 
 $user = $_SESSION["user"] ?? null;
+
+// Lists for dropdowns (from settings.json)
+$course_codes = $settings['course_codes'] ?? [];
+$sections     = $settings['sections'] ?? [];
+if (!is_array($course_codes)) $course_codes = [];
+if (!is_array($sections)) $sections = [];
 
 /* ---------- CSRF ---------- */
 if (empty($_SESSION["csrf"])) {
@@ -509,7 +478,9 @@ $ts     = $_GET["ts"] ?? "";
                   <label>Course</label>
                   <select name="course_code" required>
                     <option value="" disabled selected>Select course</option>
-                    <option>MAT120 LAB</option>
+                    <?php foreach ($course_codes as $c): $c = trim((string)$c); if ($c==='') continue; ?>
+                      <option value="<?= htmlspecialchars($c) ?>"><?= htmlspecialchars($c) ?></option>
+                    <?php endforeach; ?>
                   </select>
                 </div>
 
@@ -517,9 +488,9 @@ $ts     = $_GET["ts"] ?? "";
                   <label>Section</label>
                   <select name="section" required>
                     <option value="" disabled selected>Select section</option>
-                    <option>14</option>
-                    <option>15</option>
-                    <option>16</option>
+                    <?php foreach ($sections as $s): $s = trim((string)$s); if ($s==='') continue; ?>
+                      <option value="<?= htmlspecialchars($s) ?>"><?= htmlspecialchars($s) ?></option>
+                    <?php endforeach; ?>
                   </select>
                 </div>
               </div>
