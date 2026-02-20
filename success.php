@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
-session_start();
+
+require_once __DIR__ . '/security_headers.php'; 
+require_once __DIR__ . '/session_bootstrap.php';
+secure_session_start();
 
 $last = $_SESSION['last_submission'] ?? [];
 if (!is_array($last)) $last = [];

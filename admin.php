@@ -1,7 +1,10 @@
 <?php
 declare(strict_types=1);
 
-session_start();
+require_once __DIR__ . '/security_headers.php'; 
+require_once __DIR__ . '/session_bootstrap.php';
+secure_session_start();
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/settings_lib.php';
 
@@ -64,6 +67,7 @@ if (($_POST['action'] ?? '') === 'login') {
     if ($stored === '') {
         $flash = 'Admin password is not configured. Set admin_password_sha1 in settings.json.';
     } elseif (hash_equals($stored, sha1($pw))) {
+        session_regenerate_id(true);
         $_SESSION['admin_authed'] = true;
         header('Location: admin.php');
         exit;

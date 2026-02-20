@@ -2,10 +2,10 @@
 declare(strict_types=1);
 
 // Google OAuth Client ID (Web)
-const GOOGLE_CLIENT_ID = "152898827405-5o9mng0eumjler1dr715onuq99ms9sl2.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "";
 
 // Google Sheet settings
-const SPREADSHEET_ID = "1UCUvcLmxjSmX9mXWYijhlsL5GTh4lfMasXtGvyjwEkY";
+const SPREADSHEET_ID = "";
 const SHEET_TAB_NAME = "Attendance";
 
 // Service account JSON

@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
-session_start();
+
+require_once __DIR__ . '/security_headers.php'; 
+require_once __DIR__ . '/session_bootstrap.php';
+secure_session_start();
+
 require_once __DIR__ . "/config.php";
 require_once __DIR__ . "/settings_lib.php";
 header("Content-Type: application/json");
@@ -54,6 +58,8 @@ if (!email_is_allowed($email, $settings)) {
   echo json_encode(["error" => $msg]);
   exit;
 }
+
+session_login_regenerate();
 
 $_SESSION["user"] = [
   "email" => $email,

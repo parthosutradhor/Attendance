@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/security_headers.php'; 
 require_once __DIR__ . '/settings_lib.php';
 
 // Load admin-controlled settings
@@ -351,7 +352,8 @@ exit();
    ATTENDANCE SYSTEM STARTS HERE
    =============================== */
 
-session_start();
+require_once __DIR__ . '/session_bootstrap.php';
+secure_session_start();                 // ✅ hardened session start
 require_once __DIR__ . "/config.php";
 
 $user = $_SESSION["user"] ?? null;
