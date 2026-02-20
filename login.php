@@ -20,6 +20,15 @@ if (!$token) {
   exit;
 }
 
+require_once __DIR__ . '/rate_limit.php';
+[$ok, $retryAfter] = rate_limit_allow('google_login', 30, 300);
+if (!$ok) {
+  http_response_code(429);
+  header('Retry-After: ' . $retryAfter);
+  echo json_encode(["error" => "Too many requests. Try again in {$retryAfter} seconds."]);
+  exit;
+}
+
 // Verify token using Google's tokeninfo endpoint (simple raw PHP approach)
 $verifyUrl = "https://oauth2.googleapis.com/tokeninfo?id_token=" . urlencode($token);
 $response = @file_get_contents($verifyUrl);

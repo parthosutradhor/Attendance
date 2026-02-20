@@ -59,20 +59,31 @@ if (isset($_GET['logout'])) {
 
 if (($_POST['action'] ?? '') === 'login') {
     require_csrf();
-    $pw = (string)($_POST['password'] ?? '');
-
-    $auth_settings = settings_load();
-    $stored = strtolower(trim((string)($auth_settings['admin_password_sha1'] ?? '')));
-
-    if ($stored === '') {
-        $flash = 'Admin password is not configured. Set admin_password_sha1 in settings.json.';
-    } elseif (hash_equals($stored, sha1($pw))) {
-        session_regenerate_id(true);
-        $_SESSION['admin_authed'] = true;
-        header('Location: admin.php');
-        exit;
+	
+    require_once __DIR__ . '/rate_limit.php';
+    [$ok, $retryAfter, $remaining] = rate_limit_allow('admin_login', 8, 300); // 8 tries / 5 min
+    if (!$ok) {
+        http_response_code(429);
+        header('Retry-After: ' . $retryAfter);
+        $flash = "Too many attempts. Try again in {$retryAfter} seconds.";
     } else {
-        $flash = 'Wrong password.';
+        // Continue normal login check
+        $pw = (string)($_POST['password'] ?? '');
+
+        $auth_settings = settings_load();
+        $stored = strtolower(trim((string)($auth_settings['admin_password_sha1'] ?? '')));
+
+        if ($stored === '') {
+            $flash = 'Admin password is not configured. Set admin_password_sha1 in settings.json.';
+        } elseif (hash_equals($stored, sha1($pw))) {
+            session_regenerate_id(true);     // ✅ recommended here too
+            $_SESSION['admin_authed'] = true;
+            header('Location: admin.php');
+            exit;
+        } else {
+            rate_limit_sleep_on_fail(500);   // ✅ slow down brute-force
+            $flash = 'Wrong password.';
+        }
     }
 }
 
@@ -470,7 +481,7 @@ code{
       <input type="hidden" name="action" value="login">
       <label>Password</label>
       <input type="password" name="password" autocomplete="current-password" required>
-      <button type="submit">Login</button>
+      <button type="submit" style="margin-top: 10px;">Login</button>
     </form>
   </div>
 <?php else: ?>
