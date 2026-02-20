@@ -69,11 +69,12 @@ body{
     linear-gradient(180deg, #ffffff, #fbfdff);
 }
 
+/* ✅ SAME AS MOBILE ON ALL SIZES */
 .brand-row{
   display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
+  flex-direction: column;       /* was row on desktop */
+  align-items: stretch;          /* allows badge to align right */
+  gap: 10px;
   text-align: center;
 }
 
@@ -82,6 +83,8 @@ body{
   flex-direction:column;
   gap:3px;
   min-width: 0;
+  align-items: center;          /* center title */
+  text-align: center;
 }
 
 .brand-title h1{
@@ -99,7 +102,7 @@ body{
   font-weight: 700;
 }
 
-/* Right side pill date */
+/* Right side pill date (now on 2nd line, right aligned) */
 .badge{
   display:inline-flex;
   align-items:center;
@@ -112,6 +115,7 @@ body{
   font-weight: 900;
   font-size: 12.5px;
   white-space:nowrap;
+  align-self: flex-end;         /* right side */
 }
 .badge .dot{
   width:8px;
@@ -125,7 +129,7 @@ body{
   margin-top: 10px;
   display:flex;
   align-items:center;
-  justify-content:flex-end;
+  justify-content:center;       /* centered like mobile */
   gap:10px;
   flex-wrap:wrap;
 }
@@ -153,7 +157,6 @@ body{
 }
 @media (max-width: 640px){
   .user-chip .email{ max-width: 210px; }
-  .badge{ align-self: center; } /* center the date */
 }
 
 .link{
@@ -162,28 +165,6 @@ body{
   font-weight: 900;
 }
 .link:hover{ text-decoration: underline; }
-
-/* Mobile header layout:
-   - title centered
-   - date on next line right aligned
-*/
-@media (max-width: 640px){
-  .brand-row{
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-  .brand-title{
-    align-items: center;
-    text-align: center;
-  }
-  .badge{
-    align-self: flex-end;
-  }
-  .user-row{
-    justify-content: center;
-  }
-}
 
 /* ---- content ---- */
 .content{
@@ -472,7 +453,7 @@ $ts     = (string)($_GET["ts"] ?? "");
           <div class="panel" style="text-align:center;">
             <div style="font-weight:950; font-size:16px; margin-bottom:6px;">Sign in to continue</div>
             <div style="color:var(--muted); font-weight:650; font-size:13px; margin-bottom:14px;">
-              Use your official BRACU Google account to access the portal.
+              Use your BRACU Google account to access the portal.
             </div>
 
             <div id="g_id_onload"
