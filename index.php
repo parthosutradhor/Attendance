@@ -441,7 +441,7 @@ $ts     = $_GET["ts"] ?? "";
           <div class="panel" style="text-align:center;">
             <div style="font-weight:950; font-size:16px; margin-bottom:6px;">Sign in to continue</div>
             <div style="color:var(--muted); font-weight:650; font-size:13px; margin-bottom:14px;">
-              Use your BRAC Google account to access the portal.
+              Use your official BRACU Google account to access the portal.
             </div>
 
             <div id="g_id_onload"
@@ -454,7 +454,7 @@ $ts     = $_GET["ts"] ?? "";
                  data-size="large"
                  data-theme="outline"
                  data-text="signin_with"
-                 data-shape="pill"></div>
+                 data-shape="pill" style="display: flex;justify-content: center;"></div>
           </div>
 
           <script>
