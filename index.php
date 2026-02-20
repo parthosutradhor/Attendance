@@ -1,19 +1,11 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/security_headers.php'; 
+require_once __DIR__ . '/security_headers.php';
 require_once __DIR__ . '/settings_lib.php';
 
-// Load admin-controlled settings
-$settings = settings_load();
-
-// Admin gate: stop accepting responses
-if (empty($settings['accepting_responses'])) {
-  header('Location: access_denied.php');
-  exit;
-}
-
-$user_ip  = get_real_ip();
+/* ---------- Shared helpers ---------- */
+function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 
 /* ===============================
    Production UI (White + Bootstrap-ish Blue)
@@ -93,7 +85,7 @@ body{
 
 .brand-title h1{
   margin:0;
-  font-size: 18px;
+  font-size: 25px;
   font-weight: 950;
   letter-spacing: .2px;
   line-height: 1.15;
@@ -101,7 +93,7 @@ body{
 
 .brand-title .subtitle{
   margin:0;
-  font-size: 12.8px;
+  font-size: 14.8px;
   color: var(--muted);
   font-weight: 700;
 }
@@ -160,15 +152,7 @@ body{
 }
 @media (max-width: 640px){
   .user-chip .email{ max-width: 210px; }
-  .badge{
-    align-self: center;   /* center the date */
-  }
-}
-
-@media (max-width: 640px){
-  .badge{
-    align-self: center;   /* center the date */
-  }
+  .badge{ align-self: center; } /* center the date */
 }
 
 .link{
@@ -209,7 +193,7 @@ body{
   border-radius: 12px;
   padding: 12px 14px;
   border: 1px solid var(--border);
-  margin-bottom: 14px;
+  margin-bottom: 18px;
   font-weight: 750;
 }
 .notice.success{
@@ -224,7 +208,7 @@ body{
   margin-top: 12px;
   color: #334155;
   font-weight: 650;
-  font-size: 18px;
+  font-size: 14px;
 }
 
 .panel{
@@ -305,54 +289,100 @@ input[readonly]{
 }
 CSS;
 
-/* ---------- Block if not allowed by settings.json (whitelist / allow-all / ASN allowlist) ---------- */
+/* ---------- Load settings + IP ---------- */
+$settings = settings_load();
+$user_ip  = get_real_ip();
+
+/* ---------- Efficient renderer for the two error pages (same design/text) ---------- */
+function render_access_denied(string $ui_css, string $title_h1, string $subtitle, string $notice_strong_html, string $panel_html): void {
+    http_response_code(403);
+    ?>
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <title>Access Denied</title>
+      <style><?= $ui_css ?></style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="card" role="alert" aria-live="polite">
+          <div class="header">
+            <div class="brand-row">
+              <div class="brand-title">
+                <h1><?= h($title_h1) ?></h1>
+                <p class="subtitle"><?= h($subtitle) ?></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="notice error">
+              <?= $notice_strong_html ?>
+            </div>
+
+            <div class="panel">
+              <?= $panel_html ?>
+            </div>
+          </div>
+
+          <div class="footer">
+            Developed by <strong style="color:var(--text); margin-left:6px;">Partho Sutra Dhor</strong>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
+/* ---------- Gate #1: Responses OFF (admin) ---------- */
+if (empty($settings['accepting_responses'])) {
+
+    $notice_strong_html =
+        '<strong>This portal is not accepting responses right now. Please try again later.</strong>'
+        . '<div class="sub">Please contact your instructor for the next available response window.</div>';
+
+    $panel_html =
+        '<div style="font-weight:950; margin-bottom:6px;">What you can do</div>'
+        . '<div style="color:var(--muted); font-weight:650; font-size:13px; line-height:1.6;">'
+        . '  1) Wait until your instructor opens the portal again.<br>'
+        . '  2) If you believe this is a mistake, contact the instructor/admin.'
+        . '</div>';
+
+    render_access_denied(
+        $ui_css,
+        'Access denied',
+        'This portal is closed right now.',
+        $notice_strong_html,
+        $panel_html
+    );
+}
+
+/* ---------- Gate #2: WiFi / network not allowed (settings.json) ---------- */
 if (!network_is_allowed($user_ip, $settings)) {
-    $safe_ip = htmlspecialchars($user_ip, ENT_QUOTES, 'UTF-8');
-?>
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Access Denied</title>
-  <style><?= $ui_css ?></style>
-</head>
-<body>
-  <div class="container">
-    <div class="card" role="alert" aria-live="polite">
-      <div class="header">
-        <div class="brand-row">
-          <div class="brand-title">
-            <h1>Access Denied</h1>
-            <p class="subtitle">BRACU campus network required</p>
-          </div>
-        </div>
-      </div>
+    $safe_ip = h($user_ip);
 
-      <div class="content">
-        <div class="notice error">
-          You are not allowed to access this portal from your current network.
-          <div class="sub">Your IP: <strong><?= $safe_ip ?></strong></div>
-        </div>
+    $notice_strong_html =
+        '<strong>You are not allowed to access this portal from your current network.</strong>'
+        . '<div class="sub" style="font-size:18px">Your IP: <strong>' . $safe_ip . '</strong></div>';
 
-        <div class="panel">
-          <div style="font-weight:950; margin-bottom:6px;">What to do</div>
-          <div style="color:var(--muted); font-weight:650; font-size:13px; line-height:1.6;">
-            Connect to BRACU WiFi and refresh this page. If you are using a VPN/proxy, disable it and try again.
-            If you believe this is a mistake, contact the course instructor/admin.
-          </div>
-        </div>
-      </div>
+    $panel_html =
+        '<div style="font-weight:950; margin-bottom:6px;">What to do</div>'
+        . '<div style="color:var(--muted); font-weight:650; font-size:13px; line-height:1.6;">'
+        . '  1. Connect to BRACU WiFi and refresh this page. If you are using a VPN/proxy, disable it and try again.<br>'
+        . '  2. If you believe this is a mistake, contact the instructor/admin.'
+        . '</div>';
 
-      <div class="footer">
-        Developed by <strong style="color:var(--text); margin-left:6px;">Partho Sutra Dhor</strong>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
-<?php
-exit();
+    render_access_denied(
+        $ui_css,
+        'Access Denied',
+        'BRACU campus network required',
+        $notice_strong_html,
+        $panel_html
+    );
 }
 
 /* ===============================
@@ -365,7 +395,7 @@ require_once __DIR__ . "/config.php";
 
 $user = $_SESSION["user"] ?? null;
 
-// Lists for dropdowns (from settings.json)
+/* ---------- Dropdown lists ---------- */
 $course_codes = $settings['course_codes'] ?? [];
 $sections     = $settings['sections'] ?? [];
 if (!is_array($course_codes)) $course_codes = [];
@@ -382,9 +412,9 @@ $dt = new DateTime("now", new DateTimeZone("Asia/Dhaka"));
 $today_badge = $dt->format("j-n-Y");
 
 /* ---------- Status Messages ---------- */
-$status = $_GET["status"] ?? "";
-$msg    = $_GET["msg"] ?? "";
-$ts     = $_GET["ts"] ?? "";
+$status = (string)($_GET["status"] ?? "");
+$msg    = (string)($_GET["msg"] ?? "");
+$ts     = (string)($_GET["ts"] ?? "");
 ?>
 <!doctype html>
 <html lang="en">
@@ -408,14 +438,14 @@ $ts     = $_GET["ts"] ?? "";
 
           <div class="badge" title="Today's date" style="align-self: center;">
             <span class="dot" aria-hidden="true"></span>
-            Today: <?= htmlspecialchars($today_badge) ?>
+            Today: <?= h($today_badge) ?>
           </div>
         </div>
 
         <?php if ($user): ?>
           <div class="user-row">
             <span class="user-chip">
-              <span class="email"><?= htmlspecialchars($user["email"]) ?></span>
+              <span class="email"><?= h((string)$user["email"]) ?></span>
               <span style="opacity:.5;">|</span>
               <a class="link" href="logout.php">Logout</a>
             </span>
@@ -428,11 +458,11 @@ $ts     = $_GET["ts"] ?? "";
         <?php if ($status === "success"): ?>
           <div class="notice success">
             Attendance submitted successfully.
-            <?php if ($ts): ?><div class="sub"><?= htmlspecialchars($ts) ?></div><?php endif; ?>
+            <?php if ($ts): ?><div class="sub"><?= h($ts) ?></div><?php endif; ?>
           </div>
         <?php elseif ($status === "error"): ?>
           <div class="notice error">
-            <?= htmlspecialchars($msg ?: "Submission failed.") ?>
+            <?= h($msg ?: "Submission failed.") ?>
           </div>
         <?php endif; ?>
 
@@ -445,7 +475,7 @@ $ts     = $_GET["ts"] ?? "";
             </div>
 
             <div id="g_id_onload"
-                 data-client_id="<?= htmlspecialchars(GOOGLE_CLIENT_ID) ?>"
+                 data-client_id="<?= h((string)GOOGLE_CLIENT_ID) ?>"
                  data-callback="onGoogleCredential"
                  data-auto_prompt="false"></div>
 
@@ -480,7 +510,7 @@ $ts     = $_GET["ts"] ?? "";
 
           <div class="panel">
             <form method="POST" action="submit.php" style="margin:0;">
-              <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>"/>
+              <input type="hidden" name="csrf" value="<?= h($csrf) ?>"/>
 
               <div class="form-grid">
                 <div>
@@ -488,7 +518,7 @@ $ts     = $_GET["ts"] ?? "";
                   <select name="course_code" required>
                     <option value="" disabled selected>Select course</option>
                     <?php foreach ($course_codes as $c): $c = trim((string)$c); if ($c==='') continue; ?>
-                      <option value="<?= htmlspecialchars($c) ?>"><?= htmlspecialchars($c) ?></option>
+                      <option value="<?= h($c) ?>"><?= h($c) ?></option>
                     <?php endforeach; ?>
                   </select>
                 </div>
@@ -498,17 +528,17 @@ $ts     = $_GET["ts"] ?? "";
                   <select name="section" required>
                     <option value="" disabled selected>Select section</option>
                     <?php foreach ($sections as $s): $s = trim((string)$s); if ($s==='') continue; ?>
-                      <option value="<?= htmlspecialchars($s) ?>"><?= htmlspecialchars($s) ?></option>
+                      <option value="<?= h($s) ?>"><?= h($s) ?></option>
                     <?php endforeach; ?>
                   </select>
                 </div>
               </div>
 
               <label>Name</label>
-              <input value="<?= htmlspecialchars($user["name"]) ?>" readonly>
+              <input value="<?= h((string)$user["name"]) ?>" readonly>
 
               <label>Email</label>
-              <input value="<?= htmlspecialchars($user["email"]) ?>" readonly>
+              <input value="<?= h((string)$user["email"]) ?>" readonly>
 
               <label>Student ID</label>
               <input name="student_id" required pattern="[0-9]{8,}" inputmode="numeric" placeholder="Student ID">
