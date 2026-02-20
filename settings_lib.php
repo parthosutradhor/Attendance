@@ -9,6 +9,7 @@ require_once __DIR__ . '/config.php';
 function settings_default(): array {
     return [
         // Network controls
+        'accepting_responses' => true,
         'allow_all_ip'     => false,
         'asn_allowlist'    => ['AS151981'],
         'ip_whitelist'     => [],
@@ -54,6 +55,7 @@ function settings_load(): array {
         $s[$k] = settings_normalize_list($s[$k]);
     }
 
+    $s['accepting_responses'] = !empty($s['accepting_responses']);
     $s['allow_all_ip'] = !empty($s['allow_all_ip']);
     $s['email_mode'] = ($s['email_mode'] ?? 'domains') === 'all_gmail' ? 'all_gmail' : 'domains';
 

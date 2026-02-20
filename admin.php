@@ -100,6 +100,7 @@ if ($authed && !empty($_POST['action']) && $_POST['action'] !== 'login') {
     $action = (string)$_POST['action'];
 
     if ($action === 'save_toggles') {
+        $settings['accepting_responses'] = !empty($_POST['accepting_responses']);
         $settings['allow_all_ip'] = !empty($_POST['allow_all_ip']);
         $mode = (string)($_POST['email_mode'] ?? 'domains');
         $settings['email_mode'] = ($mode === 'all_gmail') ? 'all_gmail' : 'domains';
@@ -267,7 +268,7 @@ a:hover{ text-decoration: underline; }
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow-sm);
-  margin-bottom: 16px;
+  margin-bottom: 0px;
 }
 
 .block h3{
@@ -421,6 +422,42 @@ button.danger:hover{
   border-radius: 12px;
 }
 
+
+/* Segmented Yes/No (Twitter-ish) */
+.toggle-seg{ gap: 12px; }
+.seg-label{
+  font-weight: 800;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.seg{
+  display:flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow:hidden;
+  background:#fff;
+}
+.seg input{ position:absolute; opacity:0; pointer-events:none; }
+.seg-btn{
+  padding: 9px 14px;
+  cursor:pointer;
+  font-weight: 900;
+  font-size: 13px;
+  user-select:none;
+  background:#fff;
+  color: var(--muted);
+  transition: background .15s ease, color .15s ease, filter .15s ease;
+}
+.seg-btn.yes{ border-right: 1px solid var(--border); }
+#acc_yes:checked + label.yes{
+  background: var(--primary);
+  color:#fff;
+}
+#acc_no:checked + label.no{
+  background: var(--danger);
+  color:#fff;
+}
+
 /* Make Save button align nicely on wrap */
 .toggles button{
   box-shadow: 0 10px 22px rgba(29,155,240,.22);
@@ -486,13 +523,24 @@ code{
   </div>
 <?php else: ?>
 
-  <div class="block">
+  <div class="block" style="margin-bottom:16px;">
     <h3>Core Switches</h3>
     <form method="post">
       <input type="hidden" name="csrf" value="<?=h($token)?>">
       <input type="hidden" name="action" value="save_toggles">
 
       <div class="toggles">
+        <div class="toggle toggle-seg">
+          <div class="seg-label">Accepting Response</div>
+          <div class="seg" role="group" aria-label="Accepting Response">
+            <input id="acc_yes" type="radio" name="accepting_responses" value="1" <?=(!empty($settings['accepting_responses']) ? 'checked' : '')?>>
+            <label for="acc_yes" class="seg-btn yes">Yes</label>
+
+            <input id="acc_no" type="radio" name="accepting_responses" value="0" <?=empty($settings['accepting_responses']) ? 'checked' : ''?>>
+            <label for="acc_no" class="seg-btn no">No</label>
+          </div>
+        </div>
+
         <div class="toggle">
           <input id="allow_all_ip" type="checkbox" name="allow_all_ip" value="1" <?=!empty($settings['allow_all_ip']) ? 'checked' : ''?>>
           <label for="allow_all_ip">Allow all IP</label>
@@ -501,16 +549,12 @@ code{
         <div class="toggle">
           <label for="email_mode">Email policy</label>
           <select id="email_mode" name="email_mode">
-            <option value="all_gmail" <?=($settings['email_mode'] ?? '') === 'all_gmail' ? 'selected' : ''?>>Allow all Gmail</option>
-            <option value="domains" <?=($settings['email_mode'] ?? '') !== 'all_gmail' ? 'selected' : ''?>>Allow only Whitelisted domains</option>
+            <option value="all_gmail" <?=($settings['email_mode'] ?? '') === 'all_gmail' ? 'selected' : ''?>>Allow all Google mails</option>
+            <option value="domains" <?=($settings['email_mode'] ?? '') !== 'all_gmail' ? 'selected' : ''?>>Allow only whitelisted domains</option>
           </select>
         </div>
 
         <button type="submit">Save</button>
-      </div>
-
-      <div class="policy-note">
-        Policy order: <b>IP whitelist</b> → <b>Allow all IP</b> → <b>ASN allowlist</b>.
       </div>
     </form>
   </div>

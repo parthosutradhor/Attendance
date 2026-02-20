@@ -11,6 +11,13 @@ require_once __DIR__ . "/sheets.php";
 
 $settings = settings_load();
 
+// Admin gate: stop accepting responses
+if (empty($settings['accepting_responses'])) {
+  header('Location: access_denied.php');
+  exit;
+}
+
+
 if (!isset($_SESSION["user"])) {
   header("Location: index.php?status=error&msg=" . urlencode("Not logged in."));
   exit;

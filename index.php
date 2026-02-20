@@ -6,6 +6,13 @@ require_once __DIR__ . '/settings_lib.php';
 
 // Load admin-controlled settings
 $settings = settings_load();
+
+// Admin gate: stop accepting responses
+if (empty($settings['accepting_responses'])) {
+  header('Location: access_denied.php');
+  exit;
+}
+
 $user_ip  = get_real_ip();
 
 /* ===============================
@@ -214,10 +221,10 @@ body{
   border-color: rgba(220,53,69,.35);
 }
 .notice .sub{
-  margin-top: 4px;
-  color: var(--muted);
+  margin-top: 12px;
+  color: #334155;
   font-weight: 650;
-  font-size: 13px;
+  font-size: 18px;
 }
 
 .panel{

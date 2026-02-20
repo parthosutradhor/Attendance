@@ -1,15 +1,57 @@
+# =========================
+# Secure defaults
+# =========================
+
 # Disable directory listing
 Options -Indexes
 
-# Block sensitive files
-<FilesMatch "\.(json|lock|log|ini)$">
+# Do not allow access to .ht* files (including .htaccess, .htpasswd)
+<FilesMatch "^\.ht">
   Require all denied
 </FilesMatch>
 
-# Specifically block service account / settings even if extension changes
+# Block VCS / tooling / dotfiles (e.g., .git, .env)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Block hidden files/folders (starts with a dot), except ".well-known"
+  RewriteCond %{REQUEST_URI} !^/\.well-known/ [NC]
+  RewriteRule (^|/)\. - [F]
+
+  # Block git/svn/hg directories explicitly
+  RewriteRule (^|/)\.(git|svn|hg)(/|$) - [F,NC]
+</IfModule>
+
+# =========================
+# Block sensitive files
+# =========================
+
+# Common sensitive extensions (adjust if you intentionally serve any of these)
+<FilesMatch "\.(json|lock|log|ini|env|bak|old|swp|sql|sqlite|sqlite3|yml|yaml|dist)$">
+  Require all denied
+</FilesMatch>
+
+# Specifically block your known sensitive files
 <Files "service-account.json">
   Require all denied
 </Files>
 <Files "settings.json">
   Require all denied
 </Files>
+<Files "secrets.txt">
+  Require all denied
+</Files>
+
+# Optional: block composer / node / misc metadata if present
+<FilesMatch "^(composer\.(json|lock)|package(-lock)?\.json|yarn\.lock|phpunit\.xml(\.dist)?|\.DS_Store)$">
+  Require all denied
+</FilesMatch>
+
+# =========================
+# If you want to force HTTPS (optional)
+# =========================
+<IfModule mod_rewrite.c>
+   RewriteEngine On
+   RewriteCond %{HTTPS} !=on
+   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>

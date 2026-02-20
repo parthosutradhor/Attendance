@@ -1,4 +1,5 @@
 {
+    "accepting_responses": true,
     "allow_all_ip": false,
     "asn_allowlist": [
         "AS151981"
@@ -23,6 +24,6 @@
         "17",
         "18"
     ],
-    "updated_at": "2026-02-19T23:09:12-05:00",
+    "updated_at": "2026-02-20T00:36:54-05:00",
     "admin_password_sha1": "7c4a8d09ca3762af61e59520943dc26494f8941b"
 }
