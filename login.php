@@ -63,7 +63,7 @@ if (!email_is_allowed($email, $settings)) {
   $mode = ($settings['email_mode'] ?? 'domains') === 'all_gmail' ? 'all_gmail' : 'domains';
   $msg = ($mode === 'all_gmail')
     ? 'Only @gmail.com accounts are allowed right now.'
-    : 'Your email domain is not allowed.';
+    : 'Use your official BRACU Google account to access the portal.';
   echo json_encode(["error" => $msg]);
   exit;
 }

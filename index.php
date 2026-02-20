@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/security_headers.php';
 require_once __DIR__ . '/settings_lib.php';
+require_once __DIR__ . '/helpers.php';
 
 /* ---------- Shared helpers ---------- */
-function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 
 /* ===============================
    Production UI (White + Bootstrap-ish Blue)

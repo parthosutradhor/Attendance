@@ -8,29 +8,7 @@ secure_session_start();
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/settings_lib.php';
 
-function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
-
-function csrf_token(): string {
-    if (empty($_SESSION['csrf_admin'])) {
-        $_SESSION['csrf_admin'] = bin2hex(random_bytes(16));
-    }
-    return $_SESSION['csrf_admin'];
-}
-
-function require_csrf(): void {
-    $t = (string)($_POST['csrf'] ?? '');
-    if ($t === '' || empty($_SESSION['csrf_admin']) || !hash_equals($_SESSION['csrf_admin'], $t)) {
-        http_response_code(403);
-        die('CSRF failed');
-    }
-}
-
-function require_admin(): void {
-    if (empty($_SESSION['admin_authed'])) {
-        header('Location: admin.php');
-        exit;
-    }
-}
+require_once __DIR__ . '/admin_helpers.php';
 
 require_admin();
 

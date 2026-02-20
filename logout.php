@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 
 require_once __DIR__ . '/security_headers.php'; 
 require_once __DIR__ . '/session_bootstrap.php';
