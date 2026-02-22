@@ -394,8 +394,8 @@ $dt = new DateTime("now", new DateTimeZone("Asia/Dhaka"));
 $today_badge = $dt->format("j-n-Y");
 
 /* ---------- Status Messages ---------- */
-$status = (string)($_GET["status"] ?? "");
-$msg    = (string)($_GET["msg"] ?? "");
+$status = (string)($_POST["status"] ?? "");
+$msg    = (string)($_POST["msg"] ?? "");
 $ts     = (string)($_GET["ts"] ?? "");
 ?>
 <!doctype html>

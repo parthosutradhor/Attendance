@@ -105,7 +105,15 @@ try {
   exit;
 
 } catch (Throwable $e) {
-  header("Location: index.php?status=error&msg=" . urlencode($e->getMessage()));
+  $status = 'error';
+    $msg = $e->getMessage();
+    ?>
+    <form id="redir" action="index.php" method="post">
+      <input type="hidden" name="status" value="<?= htmlspecialchars($status, ENT_QUOTES) ?>">
+      <input type="hidden" name="msg" value="<?= htmlspecialchars($msg, ENT_QUOTES) ?>">
+    </form>
+    <script>document.getElementById('redir').submit();</script>
+    <?php
   exit;
 }
 
